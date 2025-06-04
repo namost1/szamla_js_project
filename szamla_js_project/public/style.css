@@ -1,0 +1,173 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 1rem;
+    background-color: #fafafa;
+    color: #333;
+}
+
+header, main {
+    margin-bottom: 1rem;
+}
+
+#top-section {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+/* Formokat tartalmazó oszlopok */
+#entity-section, #invoice-section {
+    flex: 1;
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 6px;
+    background-color: #fff;
+    box-shadow: 0 0 6px rgba(0,0,0,0.05);
+}
+
+/* Label és inputok egymás alatt, egységes margóval */
+form label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: 600;
+}
+
+form input[type="text"],
+form input[type="number"],
+form input[type="date"],
+form select {
+    width: 100%;
+    padding: 6px 8px;
+    margin-top: 4px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+}
+
+form button {
+    margin-top: 1.25rem;
+    padding: 8px 14px;
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+form button:hover {
+    background-color: #4CAF50;
+}
+
+#lists-section {
+    display: flex;
+    gap: 1rem;
+    height: 600px;
+}
+
+/* A kiállítók és vevők listája egymás mellett */
+#clients-buyers-list {
+    display: flex;
+    gap: 1rem;
+    width: 40%;      /* a teljes szélesség 40%-a */
+    overflow: hidden;
+}
+
+#clients-list, #buyers-list {
+    width: 50%;       /* a #clients-buyers-list konténer 50%-a */
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 6px;
+    background-color: #fff;
+    box-shadow: 0 0 4px rgba(0,0,0,0.04);
+    font-size: 0.9rem;
+    overflow-y: auto;
+}
+
+
+/* Számlák listája marad 60% szélesség */
+#invoice-list {
+    width: 60%;
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 6px;
+    background-color: #fff;
+    box-shadow: 0 0 6px rgba(0,0,0,0.07);
+    font-size: 0.95rem;
+    overflow-y: auto;
+}
+
+/* Számla elem konténer */
+.invoice-item {
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    color: black;
+}
+
+/* Stornózott számla piros színnel */
+.invoice-item.storno {
+    color: #c0392b;
+}
+
+.invoice-header {
+    font-weight: bold;
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+}
+
+.invoice-parties {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.party {
+    width: 48%;
+}
+
+.invoice-dates {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.invoice-amounts {
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.modify-btn {
+    background-color: #007bff; 
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-left: 6px;
+    transition: background-color 0.2s ease;
+}
+
+.modify-btn:hover {
+    background-color: #007bff;
+}
+
+.delete-btn {
+    background-color: #f44336; 
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-left: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.delete-btn:hover {
+    background-color: #d32f2f;
+}
