@@ -262,3 +262,19 @@ form button:hover {
     text-align: center;
     margin-bottom: 15px;
 }
+
+.edit-client{
+    background-color: lightblue;
+}
+
+.delete-client{
+    background-color: lightcoral;
+}
+
+.edit-buyer{
+    background-color: lightblue;
+}
+
+.delete-buyer{
+    background-color: lightcoral;
+}

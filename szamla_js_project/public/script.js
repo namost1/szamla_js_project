@@ -1,236 +1,316 @@
-async function loadClients() {
-    const res = await fetch('/api/clients');
-    const clients = await res.json();
+const apiUrl = '/api';
 
-    const list = document.getElementById('clients-list');
-    const select = document.getElementById('invoice-client');
-    list.innerHTML = '<h3>Kiállítók</h3>';
-    select.innerHTML = '';
+let editingClientId = null;
+let editingBuyerId = null;
 
-    clients.forEach(client => {
-        const div = document.createElement('div');
-        div.className = 'entity-item';
+document.addEventListener('DOMContentLoaded', () => {
+    loadClients();
+    loadBuyers();
+    loadInvoices();
 
-        const span = document.createElement('span');
-        span.textContent = `${client.name} (${client.taxNumber})`;
-        span.dataset.id = client.id;
-        span.style.cursor = 'pointer';
-        span.addEventListener('click', () => {
-            fillClientForm(client);
+    document.getElementById('add-client-form').addEventListener('submit', handleAddOrEditClient);
+    document.getElementById('add-buyer-form').addEventListener('submit', handleAddOrEditBuyer);
+    document.getElementById('add-invoice-form').addEventListener('submit', handleAddInvoice);
+});
+
+// === Kiállítók ===
+
+function loadClients() {
+    fetch(`${apiUrl}/clients`)
+        .then(res => res.json())
+        .then(clients => {
+            const clientSelect = document.getElementById('invoice-client');
+            const clientList = document.getElementById('clients-list');
+            clientSelect.innerHTML = '';
+            clientList.innerHTML = '<h3>Kiállítók</h3>';
+
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = client.name;
+                clientSelect.appendChild(option);
+
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <strong>${client.name}</strong><br>
+                    ${client.address}<br>
+                    ${client.taxNumber}<br>
+                    <button data-id="${client.id}" class="edit-client">Módosítás</button>
+                    <button data-id="${client.id}" class="delete-client">Törlés</button>
+                    <hr>
+                `;
+                clientList.appendChild(div);
+            });
+
+            document.querySelectorAll('.delete-client').forEach(button => {
+                button.addEventListener('click', () => deleteClient(button.dataset.id));
+            });
+
+            document.querySelectorAll('.edit-client').forEach(button => {
+                button.addEventListener('click', () => fillClientForm(button.dataset.id));
+            });
         });
+}
 
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Módosítás';
-        editBtn.className = 'modify-btn';
-        editBtn.addEventListener('click', () => {
-            fillClientForm(client);
-        });
+function handleAddOrEditClient(e) {
+    e.preventDefault();
+    const name = document.getElementById('client-name').value;
+    const address = document.getElementById('client-address').value;
+    const tax = document.getElementById('client-tax').value;
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Törlés';
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.addEventListener('click', async () => {
-            if (confirm(`Biztos törlöd a kiállítót: ${client.name}?`)) {
-                await deleteClient(client.id);
-            }
-        });
+    const method = editingClientId ? 'PUT' : 'POST';
+    const url = editingClientId ? `${apiUrl}/clients/${editingClientId}` : `${apiUrl}/clients`;
 
-        div.appendChild(span);
-        div.appendChild(editBtn);
-        div.appendChild(deleteBtn);
-        list.appendChild(div);
-
-        const option = document.createElement('option');
-        option.value = client.id;
-        option.textContent = client.name;
-        select.appendChild(option);
+    fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, address, taxNumber: tax })
+    }).then(() => {
+        e.target.reset();
+        editingClientId = null;
+        e.target.querySelector('button[type="submit"]').textContent = 'Hozzáadás';
+        loadClients();
     });
 }
 
-async function loadBuyers() {
-    const res = await fetch('/api/buyers');
-    const buyers = await res.json();
+function deleteClient(id) {
+    fetch(`${apiUrl}/clients/${id}`, { method: 'DELETE' })
+        .then(res => {
+            if (!res.ok) return res.json().then(data => { throw new Error(data.error); });
+        })
+        .then(() => loadClients())
+        .catch(err => alert("Nem lehet törölni a kiállítót, mert van meglévő számlája."));
+}
 
-    const list = document.getElementById('buyers-list');
-    const select = document.getElementById('invoice-buyer');
-    list.innerHTML = '<h3>Vevők</h3>';
-    select.innerHTML = '';
+function fillClientForm(id) {
+    fetch(`${apiUrl}/clients`)
+        .then(res => res.json())
+        .then(clients => {
+            const client = clients.find(c => c.id == id);
+            if (!client) return;
 
-    buyers.forEach(buyer => {
-        const div = document.createElement('div');
-        div.className = 'entity-item';
-
-        const span = document.createElement('span');
-        span.textContent = `${buyer.name} (${buyer.taxNumber})`;
-        span.dataset.id = buyer.id;
-        span.style.cursor = 'pointer';
-        span.addEventListener('click', () => {
-            fillBuyerForm(buyer);
+            document.getElementById('client-name').value = client.name;
+            document.getElementById('client-address').value = client.address;
+            document.getElementById('client-tax').value = client.taxNumber;
+            editingClientId = client.id;
+            document.querySelector('#add-client-form button[type="submit"]').textContent = 'Kiállító mentése';
         });
+}
 
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Módosítás';
-        editBtn.className = 'modify-btn';
-        editBtn.addEventListener('click', () => {
-            fillBuyerForm(buyer);
+// === Vevők ===
+
+function loadBuyers() {
+    fetch(`${apiUrl}/buyers`)
+        .then(res => res.json())
+        .then(buyers => {
+            const buyerSelect = document.getElementById('invoice-buyer');
+            const buyerList = document.getElementById('buyers-list');
+            buyerSelect.innerHTML = '';
+            buyerList.innerHTML = '<h3>Vevők</h3>';
+
+            buyers.forEach(buyer => {
+                const option = document.createElement('option');
+                option.value = buyer.id;
+                option.textContent = buyer.name;
+                buyerSelect.appendChild(option);
+
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <strong>${buyer.name}</strong><br>
+                    ${buyer.address}<br>
+                    ${buyer.taxNumber}<br>
+                    <button data-id="${buyer.id}" class="edit-buyer">Módosítás</button>
+                    <button data-id="${buyer.id}" class="delete-buyer">Törlés</button>
+                    <hr>
+                `;
+                buyerList.appendChild(div);
+            });
+
+            document.querySelectorAll('.delete-buyer').forEach(button => {
+                button.addEventListener('click', () => deleteBuyer(button.dataset.id));
+            });
+
+            document.querySelectorAll('.edit-buyer').forEach(button => {
+                button.addEventListener('click', () => fillBuyerForm(button.dataset.id));
+            });
         });
+}
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Törlés';
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.addEventListener('click', async () => {
-            if (confirm(`Biztos törlöd a vevőt: ${buyer.name}?`)) {
-                await deleteBuyer(buyer.id);
-            }
-        });
+function handleAddOrEditBuyer(e) {
+    e.preventDefault();
+    const name = document.getElementById('buyer-name').value;
+    const address = document.getElementById('buyer-address').value;
+    const tax = document.getElementById('buyer-tax').value;
 
-        div.appendChild(span);
-        div.appendChild(editBtn);
-        div.appendChild(deleteBtn);
-        list.appendChild(div);
+    const method = editingBuyerId ? 'PUT' : 'POST';
+    const url = editingBuyerId ? `${apiUrl}/buyers/${editingBuyerId}` : `${apiUrl}/buyers`;
 
-        const option = document.createElement('option');
-        option.value = buyer.id;
-        option.textContent = buyer.name;
-        select.appendChild(option);
+    fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, address, taxNumber: tax })
+    }).then(() => {
+        e.target.reset();
+        editingBuyerId = null;
+        e.target.querySelector('button[type="submit"]').textContent = 'Kiállító mentése';
+        loadBuyers();
     });
 }
 
-async function loadInvoices() {
-    try {
-        const response = await fetch("/api/invoices");
-        if (!response.ok) throw new Error("Nem sikerült betölteni a számlákat.");
+function deleteBuyer(id) {
+    fetch(`${apiUrl}/buyers/${id}`, { method: 'DELETE' })
+        .then(res => {
+            if (!res.ok) return res.json().then(data => { throw new Error(data.error); });
+        })
+        .then(() => loadBuyers())
+        .catch(err => alert("Nem lehet törölni a vevőt, mert van meglévő számlája."));
+}
 
-        const invoices = await response.json();
+function fillBuyerForm(id) {
+    fetch(`${apiUrl}/buyers`)
+        .then(res => res.json())
+        .then(buyers => {
+            const buyer = buyers.find(b => b.id == id);
+            if (!buyer) return;
 
-        const invoiceList = document.getElementById("invoice-list");
-        invoiceList.innerHTML = "<h3>Számlák</h3>";
+            document.getElementById('buyer-name').value = buyer.name;
+            document.getElementById('buyer-address').value = buyer.address;
+            document.getElementById('buyer-tax').value = buyer.taxNumber;
+            editingBuyerId = buyer.id;
+            document.querySelector('#add-buyer-form button[type="submit"]').textContent = 'Vevő mentése';
+        });
+}
 
-        invoices.forEach(invoice => {
-            const invoiceDiv = document.createElement("div");
-            invoiceDiv.className = "invoice-item";
-            if (invoice.isStorno === 1 || invoice.isStorno === true) {
-                invoiceDiv.classList.add("storno");
+// === Számlák ===
+
+function handleAddInvoice(e) {
+    e.preventDefault();
+
+    const invoice = {
+        clientId: parseInt(document.getElementById('invoice-client').value),
+        buyerId: parseInt(document.getElementById('invoice-buyer').value),
+        issueDate: document.getElementById('issue-date').value,
+        fulfillmentDate: document.getElementById('fulfillment-date').value,
+        paymentDeadline: document.getElementById('payment-deadline').value,
+        totalAmount: parseFloat(document.getElementById('total-amount').value),
+        vatPercent: parseInt(document.getElementById('vat-percent').value)
+    };
+
+    fetch(`${apiUrl}/invoices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(invoice)
+    })
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(data => { throw new Error(data.error); });
             }
+        })
+        .then(() => {
+            e.target.reset();
+            loadInvoices();
+        })
+        .catch(err => alert(err.message));
+}
 
-            // Számlaszám felül
-            const invoiceNumber = document.createElement("h2");
-            invoiceNumber.textContent = `Számla: ${invoice.invoiceNumber}`;
-            invoiceNumber.style.textAlign = "center";
-            invoiceDiv.appendChild(invoiceNumber);
+function loadInvoices() {
+    fetch(`${apiUrl}/invoices`)
+        .then(res => res.json())
+        .then(invoices => {
+            const list = document.getElementById('invoice-list');
+            list.innerHTML = '<h3>Számlák</h3>';
 
-            // Köztes konténer a két oldalnak (eladó és vevő)
-            const partiesContainer = document.createElement("div");
-            partiesContainer.style.display = "flex";
-            partiesContainer.style.justifyContent = "space-between";
-            partiesContainer.style.marginBottom = "10px";
+            invoices.forEach(inv => {
+                const div = document.createElement('div');
+                div.style.border = '1px solid #ccc';
+                div.style.padding = '1em';
+                div.style.marginBottom = '1em';
+                div.style.backgroundColor = inv.isStorno ? '#ffe6e6' : '#f9f9f9';
 
-            // Eladó adatai (bal oldalt)
-            const sellerDiv = document.createElement("div");
-            sellerDiv.style.flex = "1";
-            sellerDiv.innerHTML = `<strong>Eladó:</strong><br>
-                ${invoice.clientName}<br>
-                ${invoice.clientAddress || ""}<br>
-                ${invoice.clientTaxNumber || ""}`;
-            partiesContainer.appendChild(sellerDiv);
+                div.innerHTML = `
+                    <div style="text-align:center; font-weight:bold; font-size: 1.2em;">
+                        Számla #${inv.invoiceNumber} ${inv.isStorno ? '<span style="color:red;">(STORNÓZOTT)</span>' : ''}
+                    </div>
+                    <div style="display:flex; justify-content: space-between; margin-top: 1em;">
+                        <div>
+                            <strong>Kiállító:</strong><br>
+                            ${inv.clientName}<br>
+                            ${inv.clientAddress}<br>
+                            Adószám: ${inv.clientTaxNumber}
+                        </div>
+                        <div style="text-align:right;">
+                            <strong>Vevő:</strong><br>
+                            ${inv.buyerName}<br>
+                            ${inv.buyerAddress}<br>
+                            Adószám: ${inv.buyerTaxNumber}
+                        </div>
+                    </div>
+                    <div style="margin-top: 1em;">
+                        <strong>Dátumok:</strong><br>
+                        Kiadás: ${inv.issueDate} |
+                        Teljesítés: ${inv.fulfillmentDate} |
+                        Fizetési határidő: ${inv.paymentDeadline}
+                    </div>
 
-            // Vevő adatai (jobb oldalt)
-            const buyerDiv = document.createElement("div");
-            buyerDiv.style.flex = "1";
-            buyerDiv.style.textAlign = "right";
-            buyerDiv.innerHTML = `<strong>Vevő:</strong><br>
-                ${invoice.buyerName}<br>
-                ${invoice.buyerAddress || ""}<br>
-                ${invoice.buyerTaxNumber || ""}`;
-            partiesContainer.appendChild(buyerDiv);
+                    <div style="margin-top: 1em; font-weight: bold;">
+                        Nettó: ${inv.totalAmount} Ft<br>
+                        ÁFA: ${inv.vatAmount} Ft<br>
+                        Bruttó: ${inv.grossAmount} Ft
+                    </div>
+                    ${!inv.isStorno ? `<div style="margin-top: 1em;"><button class="storno-btn" data-id="${inv.id}">Stornó</button></div>` : ''}
+                `;
+                list.appendChild(div);
+            });
 
-            invoiceDiv.appendChild(partiesContainer);
+            // Eseménykezelő hozzáadása a stornó gombokhoz
+            document.querySelectorAll('.storno-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    if (!confirm('Biztosan stornózni szeretnéd ezt a számlát?')) return;
 
-            // Dátumok alatta (kiállítás, teljesítés, fizetési határidő)
-            const datesDiv = document.createElement("div");
-            datesDiv.style.marginBottom = "10px";
-            datesDiv.innerHTML = `
-                Kiadás dátuma: ${invoice.issueDate || '-'}<br>
-                Teljesítés dátuma: ${invoice.fulfillmentDate || '-'}<br>
-                Fizetési határidő: ${invoice.paymentDeadline || '-'}<hr>
-            `;
-            invoiceDiv.appendChild(datesDiv);
+                    try {
+                        const response = await fetch(`${apiUrl}/invoices/storno/${id}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                        });
+                        const result = await response.json();
 
-            // Összesítések alul: nettó, ÁFA, bruttó
-            const totalsDiv = document.createElement("div");
-            totalsDiv.style.textAlign = "left";
-            totalsDiv.innerHTML = `
-                Nettó összeg: <strong>${invoice.totalAmount} Ft</strong><br>
-                ÁFA: <strong>${invoice.vatAmount} Ft</strong><br>
-                Bruttó összeg: <strong>${invoice.grossAmount} Ft</strong>
-            `;
-            invoiceDiv.appendChild(totalsDiv);
+                        if (!response.ok) throw new Error(result.error || 'Hiba történt a stornózás során');
 
-            // Storno gomb vagy státusz
-            if (!invoice.isStorno || invoice.isStorno === 0) {
-                const stornoBtn = document.createElement("button");
-                stornoBtn.textContent = "Storno";
-                stornoBtn.className = "storno-btn";
-                stornoBtn.style.marginTop = "10px";
-                stornoBtn.addEventListener("click", async () => {
-                    if (confirm(`Biztosan stornózni szeretnéd a ${invoice.invoiceNumber} számú számlát?`)) {
-                        try {
-                            const res = await fetch(`/api/invoices/${invoice.id}/storno`, { method: "POST" });
-                            if (!res.ok) throw new Error("Nem sikerült stornózni a számlát.");
-                            alert("A számla sikeresen stornózva.");
-                            await loadInvoices();
-                        } catch (error) {
-                            alert(error.message);
-                        }
+                        alert(result.message);
+                        loadInvoices();
+                    } catch (error) {
+                        alert('Hiba: ' + error.message);
                     }
                 });
-                invoiceDiv.appendChild(stornoBtn);
-            } else {
-                const stornoLabel = document.createElement("span");
-                stornoLabel.textContent = " (Stornózott)";
-                stornoLabel.style.color = "red";
-                stornoLabel.style.display = "block";
-                stornoLabel.style.marginTop = "10px";
-                invoiceDiv.appendChild(stornoLabel);
-            }
-
-            invoiceList.appendChild(invoiceDiv);
+            });
         });
-
-    } catch (error) {
-        alert("Hiba történt a számlák betöltésekor: " + error.message);
-    }
 }
 
 
+// Az aszinkron stornó funkció, ami frissíti a listát is
+async function stornoInvoice(id) {
+    if (!confirm('Biztosan stornózni szeretnéd ezt a számlát?')) return;
 
-async function deleteClient(id) {
     try {
-        const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Nem sikerült törölni a kiállítót.');
-        await loadClients();
-        await loadInvoices();
+        const response = await fetch(`${apiUrl}/invoices/storno/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.error || 'Hiba történt a stornózás során');
+
+        alert(result.message);
+        loadInvoices();  // Frissíti a listát stornó után
     } catch (error) {
-        alert(error.message);
+        alert('Hiba: ' + error.message);
     }
 }
 
-async function deleteBuyer(id) {
-    try {
-        const res = await fetch(`/api/buyers/${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Nem sikerült törölni a vevőt.');
-        await loadBuyers();
-        await loadInvoices();
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-// ... ide jöhetnek még az addClient, addBuyer, addInvoice és form kezelés függvényei
-
-// Kezdeti betöltés
-window.onload = async () => {
-    await loadClients();
-    await loadBuyers();
-    await loadInvoices();
-};
+document.querySelectorAll('.storno-button').forEach(button => {
+  button.addEventListener('click', () => {
+    const invoiceId = button.dataset.invoiceId;
+    stornoInvoice(invoiceId);
+  });
+});

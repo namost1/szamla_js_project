@@ -24,7 +24,7 @@
                     <label for="client-tax">Adószám</label>
                     <input type="text" id="client-tax" required>
                     
-                    <button type="submit">Kiállító hozzáadása</button>
+                    <button type="submit">Kiállító mentése</button>
                 </form>
 
                 <h2>Vevő hozzáadása</h2>
@@ -38,7 +38,7 @@
                     <label for="buyer-tax">Adószám</label>
                     <input type="text" id="buyer-tax" required>
                     
-                    <button type="submit">Vevő hozzáadása</button>
+                    <button type="submit">Vevő mentése</button>
                 </form>
             </div>
 
@@ -75,17 +75,20 @@
             <div id="clients-buyers-list">
                 <div id="clients-list">
                     <h3>Kiállítók</h3>
+                    <ul id="client-items"></ul>
                 </div>
                 <div id="buyers-list">
                     <h3>Vevők</h3>
+                    <ul id="buyer-items"></ul>
                 </div>
             </div>
 
             <div id="invoice-list">
                 <h3>Számlák</h3>
+                <ul id="invoice-items"></ul>
             </div>
         </section>
     </main>
-    <script src="script.js" type="module"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
