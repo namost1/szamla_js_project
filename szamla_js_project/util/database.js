@@ -58,7 +58,7 @@ if (buyerCount === 0) {
 const invoiceCount = db.prepare('SELECT COUNT(*) AS count FROM invoices').get().count;
 if (invoiceCount === 0) {
     const clients = db.prepare('SELECT * FROM clients').all();
-    const buyer = db.prepare('SELECT * FROM buyers WHERE id = 1').get();
+    const buyers = db.prepare('SELECT * FROM buyers').all(); 
     const insertInvoice = db.prepare(`
         INSERT INTO invoices (
             clientId, buyerId, invoiceNumber,
@@ -70,31 +70,33 @@ if (invoiceCount === 0) {
     `);
 
     clients.forEach(client => {
-        for (let i = 1; i <= 3; i++) {
-            const issueDate = randomDate('2024-01-01', 60);
-            const fulfillmentDate = issueDate;
-            const paymentDeadline = randomDate(issueDate, 30);
-            const totalAmount = Math.floor(Math.random() * 50000 + 10000);
-            const vatPercent = 27;
-            const invoiceNumber = `${client.id}-${new Date().getFullYear()}-${String(i).padStart(3, '0')}`;
+        buyers.forEach(buyer => {
+            for (let i = 1; i <= 3; i++) {
+                const issueDate = randomDate('2024-01-01', 60);
+                const fulfillmentDate = issueDate;
+                const paymentDeadline = randomDate(issueDate, 30);
+                const totalAmount = Math.floor(Math.random() * 50000 + 10000);
+                const vatPercent = 27;
+                const invoiceNumber = `${client.id}-${buyer.id}-${new Date().getFullYear()}-${String(i).padStart(3, '0')}`;
 
-            insertInvoice.run(
-                client.id,
-                buyer.id,
-                invoiceNumber,
-                issueDate,
-                fulfillmentDate,
-                paymentDeadline,
-                totalAmount,
-                vatPercent,
-                client.name,
-                client.address,
-                client.taxNumber,
-                buyer.name,
-                buyer.address,
-                buyer.taxNumber
-            );
-        }
+                insertInvoice.run(
+                    client.id,
+                    buyer.id,
+                    invoiceNumber,
+                    issueDate,
+                    fulfillmentDate,
+                    paymentDeadline,
+                    totalAmount,
+                    vatPercent,
+                    client.name,
+                    client.address,
+                    client.taxNumber,
+                    buyer.name,
+                    buyer.address,
+                    buyer.taxNumber
+                );
+            }
+        });
     });
 }
 
@@ -156,8 +158,15 @@ export const saveInvoice = (invoice) => {
 };
 
 export const stornoInvoice = (id) => {
-    db.prepare('UPDATE invoices SET isStorno = 1 WHERE id = ?').run(id);
+  const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(id);
+  if (!invoice) throw new Error('A számla nem található.');
+
+  if (invoice.isStorno === 1) throw new Error('A számla már stornózva van.');
+
+  db.prepare('UPDATE invoices SET isStorno = 1 WHERE id = ?').run(id);
 };
+
+
 
 export const addClient = (client) => {
     db.prepare('INSERT INTO clients (name, address, taxNumber) VALUES (?, ?, ?)').run(client.name, client.address, client.taxNumber);
