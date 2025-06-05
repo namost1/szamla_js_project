@@ -15,7 +15,6 @@ header, main {
     margin-bottom: 1rem;
 }
 
-/* Formokat tartalmazó oszlopok */
 #entity-section, #invoice-section {
     flex: 1;
     border: 1px solid #ccc;
@@ -25,7 +24,6 @@ header, main {
     box-shadow: 0 0 6px rgba(0,0,0,0.05);
 }
 
-/* Label és inputok egymás alatt, egységes margóval */
 form label {
     display: block;
     margin-top: 1rem;
@@ -67,16 +65,15 @@ form button:hover {
     height: 600px;
 }
 
-/* A kiállítók és vevők listája egymás mellett */
 #clients-buyers-list {
     display: flex;
     gap: 1rem;
-    width: 40%;      /* a teljes szélesség 40%-a */
+    width: 40%;     
     overflow: hidden;
 }
 
 #clients-list, #buyers-list {
-    width: 50%;       /* a #clients-buyers-list konténer 50%-a */
+    width: 50%;       
     border: 1px solid #ccc;
     padding: 1rem;
     border-radius: 6px;
@@ -86,8 +83,6 @@ form button:hover {
     overflow-y: auto;
 }
 
-
-/* Számlák listája marad 60% szélesség */
 #invoice-list {
     width: 60%;
     border: 1px solid #ccc;
@@ -97,25 +92,118 @@ form button:hover {
     box-shadow: 0 0 6px rgba(0,0,0,0.07);
     font-size: 0.95rem;
     overflow-y: auto;
+
+    box-sizing: border-box;  
 }
 
-/* Számla elem konténer */
 .invoice-item {
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    color: black;
+    width: 100%;  
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+
+    display: flex;
+    flex-direction: column;
 }
 
-/* Stornózott számla piros színnel */
-.invoice-item.storno {
-    color: #c0392b;
+.invoice-header,
+.invoice-items,
+.invoice-totals,
+.invoice-dates {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.invoice-header .left,
+.invoice-header .right {
+    width: 48%; 
+    box-sizing: border-box;
 }
 
 .invoice-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 4%;
+}
+
+.invoice-totals {
+    text-align: right;
     font-weight: bold;
-    font-size: 1.15rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.1em;
+    margin-top: 10px;
+}
+
+.invoice-header .left .invoice-number {
+    font-weight: bold;
+    font-size: 1.3em;
+    margin-bottom: 12px;
+}
+
+.invoice-header .party-details {
+    font-size: 0.9em;
+    line-height: 1.3em;
+    white-space: pre-line;
+}
+
+.invoice-dates {
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    color: #555;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    padding: 8px 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.invoice-items {
+    border: 1px solid #ccc;
+    padding: 10px;
+    min-height: 60px;
+    margin-bottom: 10px;
+}
+
+.storno-btn {
+    margin-top: 10px;
+    background-color: #e74c3c;
+    border: none;
+    color: white;
+    padding: 7px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    align-self: flex-start; 
+    transition: background-color 0.2s ease;
+}
+
+.storno-btn:hover {
+    background-color: #c0392b;
+}
+
+.invoice-item.storno {
+    color: red;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.storno-btn {
+    background-color: #ff9800; 
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-left: 8px;
+}
+
+.storno-btn:hover {
+    background-color: #e68900;
 }
 
 .invoice-parties {
@@ -129,15 +217,13 @@ form button:hover {
     width: 48%;
 }
 
-.invoice-dates {
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
-    color: #555;
+.invoice-parties .seller,
+.invoice-parties .buyer {
+    flex: 1;
 }
 
-.invoice-amounts {
-    font-size: 0.9rem;
-    font-weight: bold;
+.invoice-parties .buyer {
+    text-align: right;
 }
 
 .modify-btn {
@@ -170,4 +256,9 @@ form button:hover {
 
 .delete-btn:hover {
     background-color: #d32f2f;
+}
+
+.invoice-item h2 {
+    text-align: center;
+    margin-bottom: 15px;
 }
