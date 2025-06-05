@@ -22,7 +22,6 @@ const port = 8080;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Minden útvonal /api prefix-szel
 app.get('/api/clients', (req, res) => {
     res.json(getClients());
 });
@@ -38,9 +37,13 @@ app.put('/api/clients/:id', (req, res) => {
     res.status(200).send();
 });
 
-app.delete('/api/clients/:id', (req, res) => {
-    deleteClient(parseInt(req.params.id));
-    res.status(200).send();
+app.delete('/api/clients/:id', async (req, res) => {
+    try {
+        await deleteClient(req.params.id);
+        res.sendStatus(204);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
 });
 
 app.get('/api/buyers', (req, res) => {
@@ -58,13 +61,13 @@ app.put('/api/buyers/:id', (req, res) => {
     res.status(200).send();
 });
 
-app.delete('/api/buyers/:id', (req, res) => {
-    deleteBuyer(parseInt(req.params.id));
-    res.status(200).send();
-});
-
-app.get('/api/invoices', (req, res) => {
-    res.json(getInvoices());
+app.delete('/api/buyers/:id', async (req, res) => {
+    try {
+        await deleteBuyer(req.params.id);
+        res.sendStatus(204);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
 });
 
 app.post('/api/invoices', (req, res) => {
@@ -76,10 +79,21 @@ app.post('/api/invoices', (req, res) => {
     }
 });
 
-app.post('/api/invoices/:id/storno', (req, res) => {
-    stornoInvoice(parseInt(req.params.id));
-    res.status(200).send();
+app.post('/api/invoices/storno/:id', (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    stornoInvoice(id);
+    res.json({ success: true, message: 'Számla sikeresen stornózva.' });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
+  }
 });
+
+app.get('/api/invoices', (req, res) => {
+  const invoices = getInvoices();
+  res.json(invoices);
+});
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
